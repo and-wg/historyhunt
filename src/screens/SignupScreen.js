@@ -1,29 +1,24 @@
 import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 
-export default function LoginScreen({ navigation }) {
+export default function SignupScreen({ navigation }) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    console.log("Försöker logga in med:", email, password);
-    navigation.navigate("Home");
-  };
-
-  const navigateToSignup = () => {
-    navigation.navigate("Signup");
+  const handleSignup = () => {
+    console.log("Försöker registrera med:", name, email, password);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Logga in</Text>
+      <Text style={styles.title}>Registrera dig</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Namn"
+        value={name}
+        onChangeText={setName}
+      />
       <TextInput
         style={styles.input}
         placeholder="E-post"
@@ -39,12 +34,7 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Logga in" onPress={handleLogin} />
-      <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
-        <Text style={styles.signupButtonText}>
-          Har du inget konto? Registrera dig här
-        </Text>
-      </TouchableOpacity>
+      <Button title="Registrera" onPress={handleSignup} />
     </View>
   );
 }
@@ -66,12 +56,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-  },
-  signupButton: {
-    marginTop: 20,
-  },
-  signupButtonText: {
-    color: "blue",
-    textAlign: "center",
   },
 });

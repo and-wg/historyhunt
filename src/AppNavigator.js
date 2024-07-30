@@ -1,6 +1,7 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./screens/LoginScreen";
+import SignupScreen from "./screens/SignupScreen";
 import HomeScreen from "./screens/HomeScreen";
 import CreateHuntScreen from "./screens/CreateHuntScreen";
 import HuntScreen from "./screens/HuntScreen";
@@ -14,6 +15,11 @@ export default function AppNavigator() {
         name="Login"
         component={LoginScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Signup"
+        component={SignupScreen}
+        options={{ title: "Registrera" }}
       />
       <Stack.Screen
         name="Home"
