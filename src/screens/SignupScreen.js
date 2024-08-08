@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Title, Input, SignupButton } from "../components/SignupComponents";
 
 export default function SignupScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -12,29 +13,22 @@ export default function SignupScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Registrera dig</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Namn"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
+      <Title>Registrera dig</Title>
+      <Input placeholder="Namn" value={name} onChangeText={setName} />
+      <Input
         placeholder="E-post"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
       />
-      <TextInput
-        style={styles.input}
+      <Input
         placeholder="Lösenord"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Registrera" onPress={handleSignup} />
+      <SignupButton onPress={handleSignup} />
     </View>
   );
 }
@@ -44,17 +38,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
   },
 });

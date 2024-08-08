@@ -41,9 +41,7 @@ export default function LoginScreen({ navigation }) {
       />
       <Button title="Logga in" onPress={handleLogin} />
       <TouchableOpacity style={styles.signupButton} onPress={navigateToSignup}>
-        <Text style={styles.signupButtonText}>
-          Har du inget konto? Registrera dig här
-        </Text>
+        <Text style={styles.signupButtonText}>Registrera dig här</Text>
       </TouchableOpacity>
     </View>
   );
