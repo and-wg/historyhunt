@@ -5,6 +5,7 @@ import SignupScreen from "./screens/SignupScreen";
 import HomeScreen from "./screens/HomeScreen";
 import CreateHuntScreen from "./screens/CreateHuntScreen";
 import HuntScreen from "./screens/HuntScreen";
+import InviteScreen from "./screens/InviteScreen";
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,11 @@ export default function AppNavigator() {
         name="Hunt"
         component={HuntScreen}
         options={{ title: "Jakt" }}
+      />
+      <Stack.Screen
+        name="Invite"
+        component={InviteScreen}
+        options={{ title: "Friends" }}
       />
     </Stack.Navigator>
   );

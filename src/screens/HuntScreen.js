@@ -1,22 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Button, Image, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Image,
+  Alert,
+  FlatList,
+} from "react-native";
 import { Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getFirestore, doc, updateDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDoc,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 export default function HuntMapScreen({ route, navigation }) {
   const { huntId } = route.params;
   const [hasPermission, setHasPermission] = useState(null);
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
+
+    fetchPhotos();
   }, []);
+
+  const fetchPhotos = async () => {
+    const db = getFirestore();
+    const huntRef = doc(db, "hunts", huntId);
+
+    try {
+      const huntDoc = await getDoc(huntRef);
+      if (huntDoc.exists()) {
+        const huntData = huntDoc.data();
+        setPhotos(huntData.photos || []);
+      }
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+      Alert.alert("Error", "Could not fetch photos: " + error.message);
+    }
+  };
 
   const takePicture = async () => {
     try {
@@ -28,15 +60,14 @@ export default function HuntMapScreen({ route, navigation }) {
         });
 
         if (!result.canceled) {
-          setPhoto(result.assets[0].uri);
           await uploadImage(result.assets[0].uri);
         }
       } else {
-        Alert.alert("Fel", "Kameratillstånd nekades");
+        Alert.alert("Error", "Camera permission denied");
       }
     } catch (error) {
-      console.error("Kunde inte ta bild!", error);
-      Alert.alert("Fel", "Kunde inte ta bild: " + error.message);
+      console.error("Could not take picture!", error);
+      Alert.alert("Error", "Could not take picture: " + error.message);
     }
   };
 
@@ -49,7 +80,7 @@ export default function HuntMapScreen({ route, navigation }) {
     const user = auth.currentUser;
 
     if (!user) {
-      Alert.alert("Fel", "Ingen användare inloggad");
+      Alert.alert("Error", "No user logged in");
       return;
     }
 
@@ -61,10 +92,11 @@ export default function HuntMapScreen({ route, navigation }) {
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       await updateFirestore(downloadURL);
-      Alert.alert("Framgång", "Bild uppladdad och sparad!");
+      setPhotos((prevPhotos) => [...prevPhotos, downloadURL]);
+      Alert.alert("Success", "Image uploaded and saved!");
     } catch (error) {
-      console.error("Fel vid uppladdning:", error);
-      Alert.alert("Fel", "Kunde inte ladda upp bilden: " + error.message);
+      console.error("Error uploading:", error);
+      Alert.alert("Error", "Could not upload the image: " + error.message);
     }
   };
 
@@ -74,21 +106,32 @@ export default function HuntMapScreen({ route, navigation }) {
 
     try {
       await updateDoc(huntRef, {
-        photos: imageUrl,
+        photos: arrayUnion(imageUrl),
         updatedAt: new Date(),
       });
     } catch (error) {
-      console.error("Fel vid uppdatering av Firestore:", error);
-      Alert.alert("Fel", "Kunde inte uppdatera databasen: " + error.message);
+      console.error("Error updating Firestore:", error);
+      Alert.alert("Error", "Could not update the database: " + error.message);
     }
+  };
+
+  const navigateToInviteScreen = () => {
+    navigation.navigate("Invite", { huntId: huntId });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Karta för Jakt {huntId}</Text>
-      <Text>Här kommer kartan att visas</Text>
-      {photo && <Image source={{ uri: photo }} style={styles.photo} />}
-      <Button title="Ta en bild" onPress={takePicture} />
+      <Text style={styles.title}>Map for Hunt {huntId}</Text>
+      <Text>The map will be displayed here</Text>
+      <FlatList
+        data={photos}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <Image source={{ uri: item }} style={styles.photo} />
+        )}
+      />
+      <Button title="Take a picture" onPress={takePicture} />
+      <Button title="Invite Friends" onPress={navigateToInviteScreen} />
     </View>
   );
 }
@@ -107,6 +150,6 @@ const styles = StyleSheet.create({
   photo: {
     width: 300,
     height: 300,
-    marginVertical: 20,
+    marginVertical: 10,
   },
 });
