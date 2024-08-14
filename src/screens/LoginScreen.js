@@ -6,15 +6,29 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  Alert,
 } from "react-native";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    console.log("Försöker logga in med:", email, password);
-    navigation.navigate("Home");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Fel", "Vänligen fyll i både e-post och lösenord");
+      return;
+    }
+
+    try {
+      const auth = getAuth();
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log("Inloggning lyckades");
+      navigation.navigate("Home");
+    } catch (error) {
+      console.error("Inloggningsfel:", error);
+      Alert.alert("Inloggningsfel", error.message);
+    }
   };
 
   const navigateToSignup = () => {

@@ -22,6 +22,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Appen behöver åtkomst till din kamera för att ta bilder."
+        }
+      ]
+    ]
   }
 }
