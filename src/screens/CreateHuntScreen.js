@@ -14,8 +14,8 @@ export default function CreateHuntScreen({ navigation }) {
         status: "planned",
         createdAt: new Date(),
       };
-      await createHunt(huntData);
-      navigation.navigate("Home");
+      const createdHuntId = await createHunt(huntData);
+      navigation.navigate("Invite", { huntId: createdHuntId });
     } catch (error) {
       console.error("Error creating hunt:", error);
     }

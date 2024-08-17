@@ -1,5 +1,15 @@
 import { db } from "./firebaseConfig";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  updateDoc,
+  arrayUnion,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import uuid from "react-native-uuid";
 
 export const createHunt = async (huntData) => {
   try {
@@ -8,6 +18,28 @@ export const createHunt = async (huntData) => {
     return docRef.id;
   } catch (e) {
     console.error("Error adding hunt: ", e);
+    throw e;
+  }
+};
+
+export const createPlaces = async (huntId, places) => {
+  try {
+    const huntRef = doc(db, "hunts", huntId);
+
+    const validatedPlaces = places.map((place) => ({
+      id: uuid.v4(),
+      name: place.name,
+      coordinates: place.coordinates,
+    }));
+
+    await updateDoc(huntRef, {
+      places: arrayUnion(...validatedPlaces),
+    });
+
+    console.log("Places added to hunt with ID: ", huntId);
+    return huntId;
+  } catch (e) {
+    console.error("Error creating places: ", e);
     throw e;
   }
 };

@@ -6,6 +6,7 @@ import HomeScreen from "./screens/HomeScreen";
 import CreateHuntScreen from "./screens/CreateHuntScreen";
 import HuntScreen from "./screens/HuntScreen";
 import InviteScreen from "./screens/InviteScreen";
+import SelectPlacesScreen from "./screens/SelectPlacesScreen";
 
 const Stack = createStackNavigator();
 
@@ -41,6 +42,11 @@ export default function AppNavigator() {
         name="Invite"
         component={InviteScreen}
         options={{ title: "Friends" }}
+      />
+      <Stack.Screen
+        name="SelectPlaces"
+        component={SelectPlacesScreen}
+        options={{ title: "Places" }}
       />
     </Stack.Navigator>
   );

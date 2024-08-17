@@ -5,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Button,
 } from "react-native";
 import {
   getFirestore,
@@ -12,12 +13,17 @@ import {
   getDocs,
   query,
   where,
+  updateDoc,
+  doc,
+  arrayUnion,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-export default function InviteScreen({ navigation }) {
+export default function InviteScreen({ route, navigation }) {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedFriends, setSelectedFriends] = useState([]);
+  const { huntId } = route.params;
 
   useEffect(() => {
     fetchFriends();
@@ -36,21 +42,14 @@ export default function InviteScreen({ navigation }) {
       }
 
       const usersRef = collection(db, "users");
-      console.log("userref", usersRef);
-      const q = query(
-        usersRef
-        //where(firebase.firestore.FieldPath.documentId(), "==", currentUser.uid)
-      );
-      console.log("q", q);
+      const q = query(usersRef);
 
       const querySnapshot = await getDocs(q);
-      console.log("querysnapshot", querySnapshot);
 
       const friendsList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      console.log("friendslist", friendsList);
 
       setFriends(friendsList);
       setLoading(false);
@@ -60,8 +59,40 @@ export default function InviteScreen({ navigation }) {
     }
   };
 
+  const toggleFriendSelection = (friendId) => {
+    setSelectedFriends((prevSelected) => {
+      if (prevSelected.includes(friendId)) {
+        return prevSelected.filter((id) => id !== friendId);
+      } else {
+        return [...prevSelected, friendId];
+      }
+    });
+  };
+
+  const inviteFriends = async () => {
+    try {
+      const db = getFirestore();
+      const huntRef = doc(db, "hunts", huntId);
+
+      await updateDoc(huntRef, {
+        invitedFriends: arrayUnion(...selectedFriends),
+      });
+
+      console.log("Friends invited successfully");
+      navigation.navigate("SelectPlaces", { huntId });
+    } catch (error) {
+      console.error("Error inviting friends:", error);
+    }
+  };
+
   const renderFriendItem = ({ item }) => (
-    <TouchableOpacity style={styles.friendItem}>
+    <TouchableOpacity
+      style={[
+        styles.friendItem,
+        selectedFriends.includes(item.id) && styles.selectedFriend,
+      ]}
+      onPress={() => toggleFriendSelection(item.id)}
+    >
       <Text style={styles.friendName}>{item.name}</Text>
       <Text style={styles.friendEmail}>{item.email}</Text>
     </TouchableOpacity>
@@ -77,13 +108,20 @@ export default function InviteScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dina vänner</Text>
+      <Text style={styles.title}>Bjud in vänner</Text>
       {friends.length > 0 ? (
-        <FlatList
-          data={friends}
-          renderItem={renderFriendItem}
-          keyExtractor={(item) => item.id}
-        />
+        <>
+          <FlatList
+            data={friends}
+            renderItem={renderFriendItem}
+            keyExtractor={(item) => item.id}
+          />
+          <Button
+            title="Bjud in valda vänner och gå vidare"
+            onPress={inviteFriends}
+            disabled={selectedFriends.length === 0}
+          />
+        </>
       ) : (
         <Text style={styles.noFriendsText}>Du har inga vänner än.</Text>
       )}
@@ -106,6 +144,9 @@ const styles = StyleSheet.create({
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
+  },
+  selectedFriend: {
+    backgroundColor: "#e6f7ff",
   },
   friendName: {
     fontSize: 18,
