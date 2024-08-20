@@ -13,6 +13,7 @@ import { getActiveHunts, getPlannedHunts } from "../huntService";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth } from "firebase/auth";
 
 export default function HomeScreen({ navigation }) {
@@ -30,6 +31,7 @@ export default function HomeScreen({ navigation }) {
           requestCameraPermission(),
           loadUserData(),
         ]);
+        const userid = AsyncStorage.getItem("userid");
       } catch (error) {
         console.error("Error fetching initial data:", error);
         Alert.alert("Fel", "Kunde inte ladda data. Vänligen försök igen.");
@@ -76,16 +78,20 @@ export default function HomeScreen({ navigation }) {
 
     const db = getFirestore();
     const userRef = doc(db, "users", user.uid);
-
+    console.log("userref", userRef);
     try {
       const docSnap = await getDoc(userRef);
+      console.log("docsnap", docSnap);
+
       if (docSnap.exists()) {
         const userData = docSnap.data();
+        console.log("userData", userData);
+
         if (userData.profilePhoto) {
           setProfilePhoto(userData.profilePhoto);
         }
-        if (userData.username) {
-          setUsername(userData.username);
+        if (userData.name) {
+          setUsername(userData.name);
         }
       }
     } catch (error) {

@@ -18,6 +18,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function InviteScreen({ route, navigation }) {
   const [friends, setFriends] = useState([]);
@@ -34,6 +35,7 @@ export default function InviteScreen({ route, navigation }) {
       const auth = getAuth();
       const db = getFirestore();
       const currentUser = auth.currentUser;
+      const userid = AsyncStorage.getItem("userid");
 
       if (!currentUser) {
         console.log("Ingen inloggad användare");

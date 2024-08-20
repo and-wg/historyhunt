@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
@@ -22,8 +23,14 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const auth = getAuth();
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log("Inloggning lyckades");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+      console.log("user", user.uid);
+      await AsyncStorage.setItem("userid", user.uid);
       navigation.navigate("Home");
     } catch (error) {
       console.error("Inloggningsfel:", error);
