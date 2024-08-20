@@ -44,22 +44,36 @@ export const createPlaces = async (huntId, places) => {
   }
 };
 
-export const getActiveHunts = async () => {
+export const getActiveHunts = async (currentUserId) => {
   try {
-    const q = query(collection(db, "hunts"), where("status", "==", "active"));
+    const q = query(collection(db, "hunts"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let activeHunts = querySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((hunt) =>
+        hunt.participants.some((p) => p.userid === currentUserId)
+      );
+    return activeHunts;
   } catch (e) {
     console.error("Error getting active hunts: ", e);
     throw e;
   }
 };
 
-export const getPlannedHunts = async () => {
+export const getPlannedHunts = async (currentUserId) => {
   try {
-    const q = query(collection(db, "hunts"), where("status", "==", "planned"));
+    const q = query(collection(db, "hunts"));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let plannedHunts = querySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((hunt) => hunt.userid === currentUserId);
+    return plannedHunts;
   } catch (e) {
     console.error("Error getting planned hunts: ", e);
     throw e;

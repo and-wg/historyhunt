@@ -35,7 +35,7 @@ export default function InviteScreen({ route, navigation }) {
       const auth = getAuth();
       const db = getFirestore();
       const currentUser = auth.currentUser;
-      const userid = AsyncStorage.getItem("userid");
+      const userid = await AsyncStorage.getItem("userid");
 
       if (!currentUser) {
         console.log("Ingen inloggad användare");
@@ -48,10 +48,12 @@ export default function InviteScreen({ route, navigation }) {
 
       const querySnapshot = await getDocs(q);
 
-      const friendsList = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const friendsList = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter((doc) => doc.id !== userid);
 
       setFriends(friendsList);
       setLoading(false);
@@ -76,8 +78,14 @@ export default function InviteScreen({ route, navigation }) {
       const db = getFirestore();
       const huntRef = doc(db, "hunts", huntId);
 
+      const participants = selectedFriends.map((friend) => ({
+        userid: friend,
+        status: "invited",
+        visitedPlaces: [],
+      }));
+
       await updateDoc(huntRef, {
-        invitedFriends: arrayUnion(...selectedFriends),
+        participants: arrayUnion(...participants),
       });
 
       console.log("Friends invited successfully");

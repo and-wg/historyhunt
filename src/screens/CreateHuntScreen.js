@@ -12,6 +12,7 @@ import {
 import { createHunt } from "../huntService";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CreateHuntScreen({ navigation }) {
   const [huntName, setHuntName] = useState("");
@@ -69,12 +70,15 @@ export default function CreateHuntScreen({ navigation }) {
         imageUrl = await uploadImage(huntImage);
       }
 
+      const currentUserId = await AsyncStorage.getItem("userid");
       const huntData = {
         name: huntName,
         estimatedTime: parseInt(estimatedTime),
-        status: "planned",
+        userid: currentUserId,
         createdAt: new Date(),
         imageUrl: imageUrl,
+        participants: [],
+        places: [],
       };
 
       const createdHuntId = await createHunt(huntData);

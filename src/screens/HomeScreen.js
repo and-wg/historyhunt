@@ -45,9 +45,10 @@ export default function HomeScreen({ navigation }) {
 
   const fetchHunts = async () => {
     try {
+      const currentUserId = await AsyncStorage.getItem("userid");
       const [activeHuntsData, plannedHuntsData] = await Promise.all([
-        getActiveHunts(),
-        getPlannedHunts(),
+        getActiveHunts(currentUserId),
+        getPlannedHunts(currentUserId),
       ]);
       setActiveHunts(activeHuntsData);
       setPlannedHunts(plannedHuntsData);
@@ -175,7 +176,11 @@ export default function HomeScreen({ navigation }) {
   const renderHuntItem = ({ item, isActive }) => (
     <TouchableOpacity
       style={styles.huntItem}
-      onPress={() => navigation.navigate("Hunt", { huntId: item.id, isActive })}
+      onPress={() => {
+        if (isActive) {
+          navigation.navigate("Hunt", { huntId: item.id, isActive });
+        }
+      }}
     >
       <Text>{item.name}</Text>
     </TouchableOpacity>
