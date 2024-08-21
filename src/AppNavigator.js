@@ -7,6 +7,7 @@ import CreateHuntScreen from "./screens/CreateHuntScreen";
 import HuntScreen from "./screens/HuntScreen";
 import InviteScreen from "./screens/InviteScreen";
 import SelectPlacesScreen from "./screens/SelectPlacesScreen";
+import ConfirmHuntScreen from "./screens/ConfirmHuntScreen";
 
 const Stack = createStackNavigator();
 
@@ -47,6 +48,12 @@ export default function AppNavigator() {
         name="SelectPlaces"
         component={SelectPlacesScreen}
         options={{ title: "Places" }}
+      />
+
+      <Stack.Screen
+        name="ConfirmHunt"
+        component={ConfirmHuntScreen}
+        options={{ title: "Confirm hunt" }}
       />
     </Stack.Navigator>
   );

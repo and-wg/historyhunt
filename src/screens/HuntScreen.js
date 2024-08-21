@@ -115,10 +115,6 @@ export default function HuntMapScreen({ route, navigation }) {
     }
   };
 
-  const navigateToInviteScreen = () => {
-    navigation.navigate("Invite", { huntId: huntId });
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Map for Hunt {huntId}</Text>
@@ -131,7 +127,6 @@ export default function HuntMapScreen({ route, navigation }) {
         )}
       />
       <Button title="Take a picture" onPress={takePicture} />
-      <Button title="Invite Friends" onPress={navigateToInviteScreen} />
     </View>
   );
 }

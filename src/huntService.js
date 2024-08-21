@@ -8,6 +8,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
 } from "firebase/firestore";
 import uuid from "react-native-uuid";
 
@@ -44,6 +45,26 @@ export const createPlaces = async (huntId, places) => {
   }
 };
 
+export const confirmHunt = async (huntId, userid) => {
+  try {
+    const huntRef = doc(db, "hunts", huntId);
+    const huntSnapshot = await getDoc(huntRef);
+
+    const hunt = huntSnapshot.data();
+
+    let updatedParticipants = hunt.participants;
+    let userParticipant = updatedParticipants.find((p) => p.userid === userid);
+    userParticipant.status = "confirmed";
+
+    await updateDoc(huntRef, {
+      participants: updatedParticipants,
+    });
+  } catch (e) {
+    console.error("Error confirming hunt: ", e);
+    throw e;
+  }
+};
+
 export const getActiveHunts = async (currentUserId) => {
   try {
     const q = query(collection(db, "hunts"));
@@ -76,6 +97,25 @@ export const getPlannedHunts = async (currentUserId) => {
     return plannedHunts;
   } catch (e) {
     console.error("Error getting planned hunts: ", e);
+    throw e;
+  }
+};
+
+export const getHunt = async (huntId) => {
+  try {
+    const huntRef = doc(db, "hunts", huntId);
+    const huntSnapshot = await getDoc(huntRef);
+
+    if (huntSnapshot.exists()) {
+      return {
+        id: huntSnapshot.id,
+        ...huntSnapshot.data(),
+      };
+    } else {
+      return null;
+    }
+  } catch (e) {
+    console.error("Error getting hunt: ", e);
     throw e;
   }
 };

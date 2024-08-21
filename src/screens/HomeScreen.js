@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { getActiveHunts, getPlannedHunts } from "../huntService";
+import { getActiveHunts, getHunt, getPlannedHunts } from "../huntService";
 import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -178,9 +178,19 @@ export default function HomeScreen({ navigation }) {
   const renderHuntItem = ({ item, isActive }) => (
     <TouchableOpacity
       style={styles.huntItem}
-      onPress={() => {
+      onPress={async () => {
         if (isActive) {
-          navigation.navigate("Hunt", { huntId: item.id, isActive });
+          let hunt = await getHunt(item.id);
+          const currentUserId = await AsyncStorage.getItem("userid");
+          let userParticipant = hunt.participants.find(
+            (p) => p.userid === currentUserId
+          );
+
+          if (userParticipant.status === "confirmed") {
+            navigation.navigate("Hunt", { huntId: item.id });
+          } else {
+            navigation.navigate("ConfirmHunt", { huntId: item.id });
+          }
         }
       }}
     >
