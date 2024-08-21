@@ -6,6 +6,8 @@ import {
   Button,
   StyleSheet,
   Dimensions,
+  Modal,
+  TouchableOpacity,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
@@ -14,6 +16,9 @@ import { createPlaces } from "../huntService";
 export default function SelectPlacesScreen({ route, navigation }) {
   const [places, setPlaces] = useState([]);
   const [region, setRegion] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentPlace, setCurrentPlace] = useState(null);
+  const [placeName, setPlaceName] = useState("");
   const { huntId } = route.params;
 
   useEffect(() => {
@@ -35,11 +40,23 @@ export default function SelectPlacesScreen({ route, navigation }) {
   }, []);
 
   const handleMapPress = (event) => {
-    const newPlace = {
-      name: `Place ${places.length + 1}`,
+    setCurrentPlace({
       coordinates: event.nativeEvent.coordinate,
-    };
-    setPlaces([...places, newPlace]);
+    });
+    setModalVisible(true);
+  };
+
+  const handleSavePlace = () => {
+    if (placeName.trim() !== "") {
+      const newPlace = {
+        name: placeName,
+        coordinates: currentPlace.coordinates,
+      };
+      setPlaces([...places, newPlace]);
+      setModalVisible(false);
+      setPlaceName("");
+      setCurrentPlace(null);
+    }
   };
 
   const handleSavePlaces = async () => {
@@ -54,7 +71,7 @@ export default function SelectPlacesScreen({ route, navigation }) {
   if (!region) {
     return (
       <View style={styles.container}>
-        <Text>Loading map...</Text>
+        <Text>Laddar karta...</Text>
       </View>
     );
   }
@@ -81,6 +98,39 @@ export default function SelectPlacesScreen({ route, navigation }) {
         ))}
       </View>
       <Button title="Spara platser" onPress={handleSavePlaces} />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Namnge platsen:</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={setPlaceName}
+              value={placeName}
+              placeholder="Ange platsens namn"
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.textStyle}>Avbryt</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonSave]}
+                onPress={handleSavePlace}
+              >
+                <Text style={styles.textStyle}>Spara</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -101,5 +151,58 @@ const styles = StyleSheet.create({
   },
   placesContainer: {
     marginBottom: 20,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  input: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    width: 200,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonClose: {
+    backgroundColor: "#FF0000",
+  },
+  buttonSave: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

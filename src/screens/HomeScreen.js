@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { getActiveHunts, getPlannedHunts } from "../huntService";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
@@ -23,25 +24,26 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("Användare");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await Promise.all([
-          fetchHunts(),
-          requestCameraPermission(),
-          loadUserData(),
-        ]);
-        const userid = AsyncStorage.getItem("userid");
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-        Alert.alert("Fel", "Kunde inte ladda data. Vänligen försök igen.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          await Promise.all([
+            fetchHunts(),
+            requestCameraPermission(),
+            loadUserData(),
+          ]);
+          const userid = AsyncStorage.getItem("userid");
+        } catch (error) {
+          console.error("Error fetching initial data:", error);
+          Alert.alert("Fel", "Kunde inte ladda data. Vänligen försök igen.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+    }, [])
+  );
 
   const fetchHunts = async () => {
     try {
@@ -182,7 +184,10 @@ export default function HomeScreen({ navigation }) {
         }
       }}
     >
-      <Text>{item.name}</Text>
+      {item.imageUrl && (
+        <Image source={{ uri: item.imageUrl }} style={styles.huntIcon} />
+      )}
+      <Text style={styles.huntItemText}>{item.name}</Text>
     </TouchableOpacity>
   );
 
@@ -235,7 +240,7 @@ export default function HomeScreen({ navigation }) {
 
       <Text style={styles.medalsTitle}>MEDALJER</Text>
       <View style={styles.medalsContainer}>
-        {[...Array(5)].map((_, index) => (
+        {[...Array(6)].map((_, index) => (
           <View key={index} style={styles.medal} />
         ))}
       </View>
@@ -274,9 +279,20 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   huntItem: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
+  },
+  huntItemText: {
+    flex: 1,
+  },
+  huntIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
   },
   createHuntButton: {
     marginTop: 20,
