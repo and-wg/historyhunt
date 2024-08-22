@@ -9,7 +9,12 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { getActiveHunts, getHunt, getPlannedHunts } from "../huntService";
+import {
+  getActiveHunts,
+  getHunt,
+  getPlannedHunts,
+  countCompletedHunts,
+} from "../huntService";
 import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -21,6 +26,7 @@ export default function HomeScreen({ navigation }) {
   const [activeHunts, setActiveHunts] = useState([]);
   const [plannedHunts, setPlannedHunts] = useState([]);
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [medals, setMedals] = useState(0);
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("Användare");
 
@@ -30,6 +36,7 @@ export default function HomeScreen({ navigation }) {
         try {
           await Promise.all([
             fetchHunts(),
+            fetchMedals(),
             requestCameraPermission(),
             loadUserData(),
           ]);
@@ -56,6 +63,17 @@ export default function HomeScreen({ navigation }) {
       setPlannedHunts(plannedHuntsData);
     } catch (error) {
       console.error("Error fetching hunts:", error);
+      throw error;
+    }
+  };
+
+  const fetchMedals = async () => {
+    try {
+      const currentUserId = await AsyncStorage.getItem("userid");
+      const medalsData = await countCompletedHunts(currentUserId);
+      setMedals(medalsData);
+    } catch (error) {
+      console.error("Error fetching medals:", error);
       throw error;
     }
   };
@@ -250,7 +268,7 @@ export default function HomeScreen({ navigation }) {
 
       <Text style={styles.medalsTitle}>MEDALJER</Text>
       <View style={styles.medalsContainer}>
-        {[...Array(6)].map((_, index) => (
+        {[...Array(medals)].map((_, index) => (
           <View key={index} style={styles.medal} />
         ))}
       </View>

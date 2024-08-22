@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   getFirestore,
@@ -22,10 +23,12 @@ import {
 import { getAuth } from "firebase/auth";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import * as Location from "expo-location";
+import { completedPlace } from "../huntService";
 
 export default function HuntMapScreen({ route, navigation }) {
   const { huntId } = route.params;
   const [hasPermission, setHasPermission] = useState(null);
+  const [name, setName] = useState("");
   const [photos, setPhotos] = useState([]);
   const [region, setRegion] = useState(null);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
@@ -67,10 +70,23 @@ export default function HuntMapScreen({ route, navigation }) {
       const huntDoc = await getDoc(huntRef);
       if (huntDoc.exists()) {
         const huntData = huntDoc.data();
-        setPhotos(huntData.photos || []);
+        setName(huntData.name);
+        const currentUserId = await AsyncStorage.getItem("userid");
+        let userParticipant = huntData.participants.find(
+          (p) => p.userid === currentUserId
+        );
+        setPhotos(
+          userParticipant.visitedPlaces.map((p) => {
+            return {
+              imageUrl: p.imageUrl,
+              placeId: p.placeId,
+            };
+          }) || []
+        );
 
         const places = huntData.places || [];
         const formattedPlaces = places.map((place) => ({
+          id: place.id,
           name: place.name,
           coordinates: {
             latitude: place.coordinates.latitude,
@@ -150,8 +166,9 @@ export default function HuntMapScreen({ route, navigation }) {
       if (!result.canceled) {
         const imageUrl = await uploadImage(result.assets[0].uri);
         if (imageUrl) {
-          await updateFirestore(imageUrl, place);
-          setPhotos([...photos, { url: imageUrl, place: place.name }]);
+          const currentUserId = await AsyncStorage.getItem("userid");
+          await completedPlace(huntId, currentUserId, imageUrl, place);
+          setPhotos([...photos, { imageUrl: imageUrl, placeId: place.id }]);
         }
       }
     } else {
@@ -191,20 +208,6 @@ export default function HuntMapScreen({ route, navigation }) {
     }
   };
 
-  const updateFirestore = async (imageUrl, place) => {
-    const db = getFirestore();
-    const huntRef = doc(db, "hunts", huntId);
-
-    try {
-      await updateDoc(huntRef, {
-        photos: arrayUnion({ url: imageUrl, place: place.name }),
-      });
-    } catch (error) {
-      console.error("Error updating Firestore: ", error);
-      Alert.alert("Fel", "Kunde inte uppdatera jaktdata: " + error.message);
-    }
-  };
-
   if (!region || !currentPosition) {
     return (
       <View style={styles.container}>
@@ -220,7 +223,7 @@ export default function HuntMapScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Karta för Jakt {huntId}</Text>
+      <Text style={styles.title}>{name}</Text>
       <MapView style={styles.map} region={region} initialRegion={region}>
         <Marker
           coordinate={currentPosition}
@@ -243,15 +246,15 @@ export default function HuntMapScreen({ route, navigation }) {
         />
       </MapView>
       <Text style={styles.subtitle}>
-        Valda platser: {selectedPlaces.length}
+        Platser kvar: {selectedPlaces.length - photos.length} av{" "}
+        {selectedPlaces.length}
       </Text>
       <FlatList
         data={photos}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View>
-            <Image source={{ uri: item.url }} style={styles.photo} />
-            <Text>{item.place}</Text>
+            <Image source={{ uri: item.imageUrl }} style={styles.photo} />
           </View>
         )}
       />
