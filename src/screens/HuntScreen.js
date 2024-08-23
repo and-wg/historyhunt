@@ -62,6 +62,16 @@ export default function HuntMapScreen({ route, navigation }) {
     })();
   }, []);
 
+  useEffect(() => {
+    if (
+      selectedPlaces.length !== 0 &&
+      selectedPlaces.length === photos.length
+    ) {
+      console.log("Navigating home", selectedPlaces.length, photos.length);
+      navigation.navigate("Home");
+    }
+  }, [photos, selectedPlaces]);
+
   const fetchHuntData = async () => {
     const db = getFirestore();
     const huntRef = doc(db, "hunts", huntId);
@@ -133,15 +143,13 @@ export default function HuntMapScreen({ route, navigation }) {
     const midLat = (minLat + maxLat) / 2;
     const midLon = (minLon + maxLon) / 2;
 
-    const deltaLat = (maxLat - minLat) * 1.1; // 10% padding
-    const deltaLon = (maxLon - minLon) * 1.1; // 10% padding
+    const deltaLat = (maxLat - minLat) * 1.1;
+    const deltaLon = (maxLon - minLon) * 1.1;
 
-    // Ensure minimum delta to avoid excessive zoom
     const minDelta = 0.01;
     const latitudeDelta = Math.max(deltaLat, minDelta);
     const longitudeDelta = Math.max(deltaLon, minDelta);
 
-    // Adjust longitude delta based on the aspect ratio of the device screen
     const { width, height } = Dimensions.get("window");
     const aspectRatio = width / height;
     const adjustedLongitudeDelta = latitudeDelta * aspectRatio;

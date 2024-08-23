@@ -69,7 +69,6 @@ export const completedPlace = async (huntId, userid, imageUrl, place) => {
       userParticipant.visitedPlaces = [];
     }
 
-    // Check if the place is already visited
     if (userParticipant.visitedPlaces.some((vp) => vp.placeId === place.id)) {
       throw new Error("This place has already been visited");
     }
@@ -81,7 +80,6 @@ export const completedPlace = async (huntId, userid, imageUrl, place) => {
 
     userParticipant.visitedPlaces.push(newVisitedPlace);
 
-    // Check if all places have been visited
     const allPlacesVisited = huntData.places.every((p) =>
       userParticipant.visitedPlaces.some((vp) => vp.placeId === p.id)
     );
@@ -90,7 +88,6 @@ export const completedPlace = async (huntId, userid, imageUrl, place) => {
       userParticipant.status = "completed";
     }
 
-    // Update only the participants array
     const updatedParticipants = participants.map((p) =>
       p.userid === userid ? userParticipant : p
     );

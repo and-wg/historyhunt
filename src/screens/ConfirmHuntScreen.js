@@ -41,6 +41,7 @@ const ConfirmHuntScreen = ({ route, navigation }) => {
     try {
       const currentUserId = await AsyncStorage.getItem("userid");
       await confirmHunt(huntId, currentUserId);
+      console.log("navigating to hunt");
       navigation.navigate("Hunt", { huntId: huntId });
     } catch (error) {
       console.error("Error confirming hunt:", error);
@@ -78,14 +79,14 @@ const ConfirmHuntScreen = ({ route, navigation }) => {
       maxLong = Math.max(maxLong, place.coordinates.longitude);
     });
 
-    const latDelta = (maxLat - minLat) * 1.2; // Add 20% padding
-    const longDelta = (maxLong - minLong) * 1.2; // Add 20% padding
+    const latDelta = (maxLat - minLat) * 1.2;
+    const longDelta = (maxLong - minLong) * 1.2;
 
     return {
       latitude: (minLat + maxLat) / 2,
       longitude: (minLong + maxLong) / 2,
-      latitudeDelta: Math.max(latDelta, 0.01), // Ensure a minimum delta
-      longitudeDelta: Math.max(longDelta, 0.01), // Ensure a minimum delta
+      latitudeDelta: Math.max(latDelta, 0.01),
+      longitudeDelta: Math.max(longDelta, 0.01),
     };
   };
 
